@@ -1,24 +1,21 @@
-# Usamos la imagen oficial de Puppeteer (ya trae Chrome instalado y configurado)
+# Usamos la imagen oficial (ya trae Chrome)
 FROM ghcr.io/puppeteer/puppeteer:latest
-
-# Configuramos variables para que sepa dónde está Chrome
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 
 WORKDIR /usr/src/app
 
 # Copiamos los archivos de configuración
 COPY package*.json ./
 
-# Instalamos las dependencias como usuario root para evitar permisos denegados
+# Pasamos a usuario ROOT temporalmente para poder instalar dependencias
 USER root
 RUN npm install
 
-# Copiamos el resto de tu código
+# Copiamos el resto de los archivos
 COPY . .
 
-# Volvemos al usuario seguro de Puppeteer
+# IMPORTANTE: Volvemos al usuario de seguridad de Puppeteer
+# (Si no hacemos esto, Chrome no arranca por seguridad)
 USER pptruser
 
-# Comando para iniciar tu servidor
+# Arrancamos el servidor
 CMD [ "node", "server.js" ]
