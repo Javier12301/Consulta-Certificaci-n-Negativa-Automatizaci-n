@@ -1,6 +1,4 @@
-// Probando libreria de detección de genero para cargas masivas de DNI
-
-// Lógica de cálculo de CUIT (Tu función original)
+// --- LÓGICA DE NEGOCIO (Cálculo de CUIT) ---
 const getCUIT = (dni, gender = 'M') => {
     if (!dni || dni.length !== 8) throw new Error('El DNI debe contener exactamente 8 dígitos');
     let genderNumber = gender === 'M' ? 20 : 27;
@@ -26,11 +24,10 @@ const getCUIT = (dni, gender = 'M') => {
         genderNumber = 23;
         dv = generateDigit(23);
     }
-    // Si sigue siendo null (raro), retornamos 0 por defecto o manejamos error
     return String(genderNumber) + String(dni) + String(dv || 0);
 };
 
-// --- MANEJO DEL DOM ---
+// --- MANEJO DEL DOM (Interacción Visual) ---
 
 const dniInput = document.getElementById('dni');
 const genderSelect = document.getElementById('gender');
@@ -39,36 +36,49 @@ const errorBox = document.getElementById('error');
 const resultBox = document.getElementById('result');
 const cuitValue = document.getElementById('cuitValue');
 
-// Elemento nuevo para mostrar datos de Anses
-const ansesResultBox = document.createElement('div');
-ansesResultBox.style.marginTop = "15px";
-ansesResultBox.style.display = "none";
-document.querySelector('.card').appendChild(ansesResultBox);
+// Elementos nuevos del botón (Spinner y Texto)
+const btnSpinner = document.getElementById('btnSpinner');
+const btnText = document.getElementById('btnText');
 
+// Creamos un contenedor interno para el resultado de ANSES para no borrar el CUIT
+const ansesContainer = document.createElement('div');
+ansesContainer.style.marginTop = "15px"; 
+resultBox.appendChild(ansesContainer);
+
+// Filtro para que solo entren números en el input
 dniInput.addEventListener('input', () => {
     dniInput.value = dniInput.value.replace(/\D/g, '').slice(0, 8);
 });
 
+// Permitir "Enter" para disparar la consulta
+dniInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') calcButton.click();
+});
+
 calcButton.addEventListener('click', async () => {
-    // 1. Resetear UI
+    // 1. LIMPIEZA DE ESTADO PREVIO
     errorBox.style.display = 'none';
     resultBox.style.display = 'none';
-    ansesResultBox.style.display = 'none';
-    ansesResultBox.innerHTML = '';
-
+    ansesContainer.innerHTML = ''; // Limpiamos resultado anterior
+    
     const dni = dniInput.value.trim();
     const gender = genderSelect.value;
 
-    try {
-        // 2. Calcular CUIT Localmente
-        const cuit = getCUIT(dni, gender);
-        cuitValue.textContent = cuit;
-        resultBox.style.display = 'block';
+    // --- INICIO ESTADO DE CARGA ---
+    calcButton.disabled = true;              // Bloquear botón
+    btnSpinner.style.display = 'block';      // Mostrar ruedita
+    btnText.textContent = "Consultando...";  // Cambiar texto
+    // ------------------------------
 
-        // 3. Consultar al Servidor (Scraping)
-        calcButton.disabled = true;
-        calcButton.textContent = "Consultando ANSES...";
+    try {
+        // 2. VALIDACIÓN Y CÁLCULO LOCAL
+        if (dni.length !== 8) throw new Error('Por favor, ingresá un DNI válido de 8 dígitos.');
         
+        const cuit = getCUIT(dni, gender);
+        cuitValue.textContent = cuit; // Mostrar CUIT calculado
+        resultBox.style.display = 'block'; // Mostrar caja gris
+
+        // 3. PETICIÓN AL SERVIDOR (El momento de espera)
         const response = await fetch('/api/consultar', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -77,46 +87,59 @@ calcButton.addEventListener('click', async () => {
 
         const data = await response.json();
 
-        // 4. Mostrar Resultado ANSES
-        ansesResultBox.style.display = 'block';
+        // 4. RENDERIZADO DEL RESULTADO (VERDE / ROJO)
         
-        // HTML común para el nombre (lo usamos tanto en verde como en rojo)
-        const nombreHtml = `<div style="border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 8px; margin-bottom: 8px;">
-            <span style="font-size: 0.8rem; opacity: 0.8; text-transform: uppercase;">Paciente identificado:</span><br>
-            <strong style="font-size: 1.1rem;">${data.nombre}</strong>
-        </div>`;
+        // Título con el nombre del paciente
+        const nombreHtml = `
+            <div style="border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 8px; margin-bottom: 8px;">
+                <span style="font-size: 0.75rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px;">Paciente identificado:</span><br>
+                <strong style="font-size: 1rem; color: inherit;">${data.nombre || "Nombre no disponible"}</strong>
+            </div>
+        `;
 
         if (data.ok && data.esPosibleEmitir) {
-            // VERDE: No tiene obra social
-            ansesResultBox.innerHTML = `
-                <div style="background: #dcfce7; color: #166534; padding: 15px; border-radius: 12px; border: 1px solid #bbf7d0;">
+            // --- CASO VERDE (APROBADO) ---
+            ansesContainer.innerHTML = `
+                <div style="background: #dcfce7; color: #166534; padding: 15px; border-radius: 10px; border: 1px solid #bbf7d0; margin-top: 10px;">
                     ${nombreHtml}
-                    <h3 style="margin:0 0 5px 0;">✅ Certificación Negativa: SI</h3>
-                    <p style="margin:0; font-size: 0.9rem;">El paciente no registra cobertura activa.</p>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.5rem;">✅</span>
+                        <div>
+                            <h3 style="margin:0; font-size: 1rem;">Certificación Negativa: SI</h3>
+                            <p style="margin:0; font-size: 0.85rem; opacity: 0.9;">No registra cobertura activa.</p>
+                        </div>
+                    </div>
                 </div>
             `;
         } else if (data.ok && !data.esPosibleEmitir) {
-            // ROJO: Tiene obra social
+            // --- CASO ROJO (RECHAZADO) ---
             const listaErrores = data.mensajes.map(m => `<li>${m}</li>`).join('');
-            ansesResultBox.innerHTML = `
-                <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 12px; border: 1px solid #fecaca;">
+            ansesContainer.innerHTML = `
+                <div style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 10px; border: 1px solid #fecaca; margin-top: 10px;">
                     ${nombreHtml}
-                    <h3 style="margin:0 0 5px 0;">⚠️ Certificación Negativa: NO</h3>
-                    <p style="margin:0 0 5px 0; font-size: 0.9rem;">Motivos detectados:</p>
-                    <ul style="margin:0; padding-left: 20px; font-size: 0.85rem;">
-                        ${listaErrores || '<li>Registra movimientos en ANSES</li>'}
-                    </ul>
+                    <div style="display: flex; align-items: start; gap: 10px;">
+                        <span style="font-size: 1.5rem;">⚠️</span>
+                        <div style="width: 100%;">
+                            <h3 style="margin:0 0 5px 0; font-size: 1rem;">Certificación Negativa: NO</h3>
+                            <ul style="margin:0; padding-left: 15px; font-size: 0.85rem; line-height: 1.4;">
+                                ${listaErrores || '<li>Registra movimientos en ANSES</li>'}
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             `;
         } else {
-            throw new Error(data.error || "Error desconocido");
+            throw new Error(data.error || "Error desconocido en el servidor.");
         }
 
     } catch (err) {
         errorBox.textContent = err.message;
         errorBox.style.display = 'block';
     } finally {
-        calcButton.disabled = false;
-        calcButton.textContent = "Calcular CUIT";
+        // --- FIN ESTADO DE CARGA (Siempre se ejecuta) ---
+        calcButton.disabled = false;             // Habilitar botón
+        btnSpinner.style.display = 'none';       // Ocultar ruedita
+        btnText.textContent = "Consultar ANSES"; // Restaurar texto original
+        // -----------------------------------------------
     }
 });

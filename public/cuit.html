@@ -2,9 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Calculadora de CUIT</title>
+  <title>Calculadora de CUIT y Certificación</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
+    /* --- RESET & BASE --- */
     * {
       box-sizing: border-box;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -16,161 +17,204 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #0f172a;
+      background-color: #f3f4f6; /* Gris muy claro de fondo */
+      padding: 20px;
     }
 
+    /* --- CARD PRINCIPAL --- */
     .card {
-      background: #0b1120;
-      color: #e5e7eb;
-      border-radius: 18px;
-      padding: 24px 24px 20px;
-      max-width: 400px;
+      background: #ffffff; /* Blanco puro */
+      color: #374151;      /* Texto gris oscuro */
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 420px;
       width: 100%;
-      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(148, 163, 184, 0.3);
+      /* Sombra suave y elegante */
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+      border: 1px solid #e5e7eb;
     }
 
     .card h1 {
-      font-size: 1.25rem;
-      margin: 0 0 4px;
+      font-size: 1.35rem;
+      margin: 0 0 8px;
+      color: #111827; /* Casi negro */
+      font-weight: 700;
+      text-align: center;
     }
 
     .card p.subtitle {
-      margin: 0 0 18px;
-      font-size: 0.9rem;
-      color: #9ca3af;
+      margin: 0 0 24px;
+      font-size: 0.95rem;
+      color: #6b7280;
+      text-align: center;
+      line-height: 1.4;
     }
 
+    /* --- CAMPOS (INPUTS) --- */
     .field {
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     .field label {
       display: block;
-      margin-bottom: 4px;
-      font-size: 0.85rem;
-      color: #d1d5db;
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #374151;
     }
 
     .field input,
     .field select {
       width: 100%;
-      padding: 8px 10px;
+      padding: 12px 14px;
       border-radius: 10px;
-      border: 1px solid #4b5563;
-      background: #020617;
-      color: #e5e7eb;
-      font-size: 0.95rem;
+      border: 1px solid #d1d5db; /* Borde gris suave */
+      background: #ffffff;
+      color: #111827;
+      font-size: 1rem;
       outline: none;
-      transition: border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+      transition: all 0.2s ease;
     }
 
     .field input:focus,
     .field select:focus {
-      border-color: #60a5fa;
-      box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.5);
-      background: #020617;
+      border-color: #f97316; /* Naranja al enfocar */
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15); /* Resplandor naranja suave */
     }
 
     .hint {
-      font-size: 0.75rem;
+      font-size: 0.8rem;
       color: #9ca3af;
-      margin-top: 2px;
+      margin-top: 4px;
+      margin-left: 4px;
     }
 
+    /* --- BOTÓN NARANJA --- */
     button {
-      margin-top: 4px;
+      margin-top: 10px;
       width: 100%;
       border: none;
-      border-radius: 999px;
-      padding: 10px 14px;
-      font-size: 0.95rem;
-      font-weight: 500;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
-      background: linear-gradient(135deg, #22c55e, #16a34a);
+      /* Degradado Naranja */
+      background: linear-gradient(135deg, #fb923c, #ea580c);
       color: white;
-      box-shadow: 0 12px 25px rgba(22, 163, 74, 0.35);
-      transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+      transition: all 0.2s ease;
+      
+      /* Para centrar el loader */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px; 
     }
 
     button:hover {
       filter: brightness(1.05);
-      box-shadow: 0 16px 35px rgba(22, 163, 74, 0.45);
-      transform: translateY(-1px);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(234, 88, 12, 0.4);
     }
 
     button:active {
       transform: translateY(0);
-      box-shadow: 0 8px 18px rgba(22, 163, 74, 0.35);
+      box-shadow: 0 2px 6px rgba(234, 88, 12, 0.3);
     }
 
+    /* Estado Deshabilitado (Loading) */
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none !important;
+      filter: grayscale(0.2);
+    }
+
+    /* --- RESULTADOS --- */
     .result {
-      margin-top: 14px;
-      padding: 8px 10px;
+      margin-top: 20px;
+      padding: 15px;
       border-radius: 12px;
-      font-size: 0.95rem;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      display: none;
+      background: #f8fafc; /* Fondo muy clarito */
+      border: 1px solid #e2e8f0;
+      display: none; /* Se muestra con JS */
     }
 
     .result span.label {
       font-size: 0.8rem;
-      color: #9ca3af;
+      color: #64748b;
       display: block;
-      margin-bottom: 2px;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      font-weight: 600;
     }
 
     .result span.value {
-      font-size: 1.1rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: 0.05em;
     }
 
     .error {
-      margin-top: 8px;
-      font-size: 0.8rem;
-      color: #fecaca;
-      background: rgba(127, 29, 29, 0.5);
+      margin-top: 12px;
+      font-size: 0.9rem;
+      color: #991b1b;
+      background: #fef2f2;
       border-radius: 10px;
-      padding: 6px 8px;
-      border: 1px solid rgba(248, 113, 113, 0.6);
+      padding: 10px;
+      border: 1px solid #fecaca;
       display: none;
     }
 
     .footer {
-      margin-top: 10px;
+      margin-top: 20px;
       font-size: 0.75rem;
-      color: #6b7280;
-      text-align: right;
+      color: #9ca3af;
+      text-align: center;
+      border-top: 1px solid #f3f4f6;
+      padding-top: 15px;
     }
 
-    .footer a {
-      color: #93c5fd;
-      text-decoration: none;
+    /* --- ANIMACIÓN DE CARGA (SPINNER) --- */
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+      display: none; /* Oculto por defecto */
     }
 
-    .footer a:hover {
-      text-decoration: underline;
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
+
+    /* Clase utilitaria para mostrar elementos */
+    .d-block { display: block !important; }
+    .d-none { display: none !important; }
+
   </style>
 </head>
 <body>
+
   <div class="card">
-    <h1>Certificación negativa - Calculadora CUIT/CUIL</h1>
-    <p class="subtitle">Ingresá tu DNI y género para obtener certificación negativa.</p>
+    <h1>Consulta Certificación Negativa</h1>
+    <p class="subtitle">Sistema automatizado para validación de cobertura médica (ANSES).</p>
 
     <div class="field">
-      <label for="dni">DNI (8 dígitos)</label>
+      <label for="dni">Número de Documento</label>
       <input
         id="dni"
         type="text"
         maxlength="8"
         inputmode="numeric"
         autocomplete="off"
-        placeholder="Ej: 12345678"
+        placeholder="Ej: 20123456"
       />
-      <div class="hint">Solo números, sin puntos.</div>
+      <div class="hint">Ingresá los 8 dígitos sin puntos.</div>
     </div>
 
     <div class="field">
@@ -181,17 +225,21 @@
       </select>
     </div>
 
-    <button id="calcButton">Calcular CUIT</button>
+    <button id="calcButton">
+      <div id="btnSpinner" class="spinner"></div>
+      <span id="btnText">Consultar ANSES</span>
+    </button>
 
     <div id="error" class="error"></div>
 
     <div id="result" class="result">
-      <span class="label">CUIT calculado</span>
+      <span class="label">CUIT Generado</span>
       <span id="cuitValue" class="value"></span>
-    </div>
+      </div>
 
     <div class="footer">
-      Basado en la fórmula oficial de AFIP
+      Herramienta de uso interno hospitalario<br>
+      Desarrollado para optimizar la admisión.
     </div>
   </div>
 
