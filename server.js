@@ -26,7 +26,7 @@ app.post('/api/consultar', async (req, res) => {
 
         const browser = await puppeteer.launch({
             headless: true, // Déjalo en false para ver si escribe bien esta vez
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--single-process']
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage']
         });
 
         const page = await browser.newPage();
