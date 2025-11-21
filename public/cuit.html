@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Calculadora de CUIT</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f172a;
+    }
+
+    .card {
+      background: #0b1120;
+      color: #e5e7eb;
+      border-radius: 18px;
+      padding: 24px 24px 20px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    .card h1 {
+      font-size: 1.25rem;
+      margin: 0 0 4px;
+    }
+
+    .card p.subtitle {
+      margin: 0 0 18px;
+      font-size: 0.9rem;
+      color: #9ca3af;
+    }
+
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.85rem;
+      color: #d1d5db;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.5);
+      background: #020617;
+    }
+
+    .hint {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+
+    button {
+      margin-top: 4px;
+      width: 100%;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      box-shadow: 0 12px 25px rgba(22, 163, 74, 0.35);
+      transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+    }
+
+    button:hover {
+      filter: brightness(1.05);
+      box-shadow: 0 16px 35px rgba(22, 163, 74, 0.45);
+      transform: translateY(-1px);
+    }
+
+    button:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 18px rgba(22, 163, 74, 0.35);
+    }
+
+    .result {
+      margin-top: 14px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      display: none;
+    }
+
+    .result span.label {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .result span.value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+    }
+
+    .error {
+      margin-top: 8px;
+      font-size: 0.8rem;
+      color: #fecaca;
+      background: rgba(127, 29, 29, 0.5);
+      border-radius: 10px;
+      padding: 6px 8px;
+      border: 1px solid rgba(248, 113, 113, 0.6);
+      display: none;
+    }
+
+    .footer {
+      margin-top: 10px;
+      font-size: 0.75rem;
+      color: #6b7280;
+      text-align: right;
+    }
+
+    .footer a {
+      color: #93c5fd;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Calculadora de CUIT</h1>
+    <p class="subtitle">Ingresá tu DNI y género para obtener el CUIT (lógica AFIP).</p>
+
+    <div class="field">
+      <label for="dni">DNI (8 dígitos)</label>
+      <input
+        id="dni"
+        type="text"
+        maxlength="8"
+        inputmode="numeric"
+        autocomplete="off"
+        placeholder="Ej: 12345678"
+      />
+      <div class="hint">Solo números, sin puntos.</div>
+    </div>
+
+    <div class="field">
+      <label for="gender">Género</label>
+      <select id="gender">
+        <option value="M">Masculino</option>
+        <option value="F">Femenino</option>
+      </select>
+    </div>
+
+    <button id="calcButton">Calcular CUIT</button>
+
+    <div id="error" class="error"></div>
+
+    <div id="result" class="result">
+      <span class="label">CUIT calculado</span>
+      <span id="cuitValue" class="value"></span>
+    </div>
+
+    <div class="footer">
+      Basado en la fórmula oficial de AFIP
+    </div>
+  </div>
+
+  <script src="./js/calcular_cuit.js"></script>
+</body>
+</html>
